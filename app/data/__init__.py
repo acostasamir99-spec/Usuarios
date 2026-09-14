@@ -1,0 +1,1 @@
+"""Persistencia simulada en memoria."""
