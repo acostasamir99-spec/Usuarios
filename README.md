@@ -81,6 +81,10 @@ Windows (PowerShell):
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
+
+Api 
+uvicorn app.main:app --reload
+
 ```
 
 Windows (CMD):
