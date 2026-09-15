@@ -109,6 +109,10 @@ Si PowerShell restringe la activación, se puede utilizar directamente
 `.\.venv\Scripts\python.exe -m pip install -r requirements.txt`, sin cambiar
 políticas del sistema.
 
+## Flujo de trabajo con Git Flow
+
+El proyecto utiliza las ramas `main` y `develop`. Las nuevas funcionalidades se desarrollan en ramas `feature/*` y posteriormente se integran en `develop`.
+
 ## Variables de entorno
 
 La aplicación funciona sin crear `.env`. Opcionalmente copia `.env.example` a
