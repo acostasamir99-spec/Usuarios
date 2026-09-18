@@ -9,3 +9,8 @@ htmlcov/
 !.env.example
 # Respaldo personal: se conserva localmente, fuera de la evidencia Python.
 legacy_csharp/
+
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

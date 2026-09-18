@@ -4,23 +4,45 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import settings
-from app.data.users_db import reset_users
+from datetime import datetime
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
+from app.database.connection import Base, get_db
+from app.models.user_model import User
+from app.services.user_service import find_user_by_email
 from app.dependencies.user_dependencies import get_user_or_404
 from app.main import app
 
 
-@pytest.fixture(autouse=True)
-def isolated_data():
-    reset_users()
-    yield
-    app.dependency_overrides.clear()
-    reset_users()
+@pytest.fixture
+def database(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False})
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(bind=engine)
+    with factory() as db:
+        db.add_all([
+            User(name="Administrador", email="admin@devicesystems.com", role="admin"),
+            User(name="Soporte", email="support@devicesystems.com", role="support"),
+            User(name="Usuario", email="user@devicesystems.com", role="user", is_active=False),
+        ])
+        db.commit()
+    yield engine, factory
+    engine.dispose()
 
 
 @pytest.fixture
-def client():
-    with TestClient(app) as test_client:
-        yield test_client
+def client(database):
+    _, factory = database
+    def override_db():
+        with factory() as db:
+            yield db
+    app.dependency_overrides[get_db] = override_db
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -61,7 +83,8 @@ def test_create_and_default_active(client, payload):
     payload.pop("is_active")
     response = client.post("/users", json=payload)
     assert response.status_code == 201
-    assert response.json() == {**payload, "id": 4, "is_active": True}
+    assert response.json() == {**payload, "id": 4, "is_active": True, "created_at": response.json()["created_at"]}
+    datetime.fromisoformat(response.json()["created_at"])
     assert client.get("/users/4").json() == response.json()
 
 
@@ -78,8 +101,7 @@ def test_duplicate_email(client, payload, method, path):
 def test_invalid_role(client, payload, method, path):
     payload["role"] = "technician"
     response = getattr(client, method)(path, json=payload)
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Rol no permitido"}
+    assert response.status_code == 422
 
 
 @pytest.mark.parametrize("method,path", [("post", "/users"), ("put", "/users/1"), ("patch", "/users/1")])
@@ -103,7 +125,7 @@ def test_put_replaces_all_fields_and_allows_own_email(client):
                "role": "user", "is_active": False}
     response = client.put("/users/1", json=payload)
     assert response.status_code == 200
-    assert response.json() == {**payload, "email": "ADMIN@devicesystems.com", "id": 1}
+    assert response.json() == {**payload, "email": "ADMIN@devicesystems.com", "id": 1, "created_at": response.json()["created_at"]}
     assert client.get("/users/1").json() == response.json()
 
 
@@ -139,13 +161,13 @@ def test_delete_and_id_not_reused(client, payload):
 def test_dependency_is_used(client):
     app.dependency_overrides[get_user_or_404] = lambda: {
         "id": 77, "name": "Usuario Inyectado", "email": "test@example.com",
-        "role": "user", "is_active": True,
+        "role": "user", "is_active": True, "created_at": datetime(2026, 1, 1),
     }
     assert client.get("/users/99999").json()["id"] == 77
 
 
 @pytest.mark.parametrize("path,code", [("/", 200), ("/users", 200), ("/users/99999", 404),
-                                         ("/users?is_active=quizas", 422), ("/users?role=invalid", 400)])
+                                         ("/users?is_active=quizas", 422), ("/users?role=invalid", 422)])
 def test_headers(client, path, code):
     response = client.get(path)
     assert response.status_code == code
@@ -183,3 +205,47 @@ def test_concurrent_ids_are_unique(client, payload):
         responses = list(pool.map(create, range(8)))
     assert all(response.status_code == 201 for response in responses)
     assert len({response.json()["id"] for response in responses}) == 8
+
+
+@pytest.mark.parametrize("sort_by", ["name", "created_at"])
+@pytest.mark.parametrize("order", ["asc", "desc"])
+def test_ordering(client, sort_by, order):
+    users = client.get(f"/users?sort_by={sort_by}&order={order}").json()
+    values = [user[sort_by] for user in users]
+    assert values == sorted(values, reverse=order == "desc")
+
+
+@pytest.mark.parametrize("query", ["sort_by=email", "order=invalid"])
+def test_invalid_sort(client, query):
+    assert client.get(f"/users?{query}").status_code == 422
+
+
+def test_persistence_after_reconnecting(client, database, payload):
+    engine, _ = database
+    created = client.post("/users", json=payload).json()
+    engine.dispose()
+    reopened = create_engine(engine.url)
+    try:
+        with sessionmaker(bind=reopened)() as db:
+            stored = find_user_by_email(db, payload["email"].upper())
+            assert stored.id == created["id"]
+            assert stored.name == payload["name"]
+    finally:
+        reopened.dispose()
+
+
+@pytest.mark.parametrize("values", [
+    {"name": None}, {"name": "ab"}, {"role": "invalid"}, {"email": None},
+    {"email": "ADMIN@DEVICESYSTEMS.COM"}, {"is_active": None},
+])
+def test_database_constraints(database, values):
+    _, factory = database
+    with factory() as db:
+        user = User(**({"name": "Persona", "email": "new@example.com", "role": "user"} | values))
+        # INSERT directo permite comprobar NULL sin aplicar defaults del ORM.
+        fields = {"name": user.name, "email": user.email, "role": user.role, "is_active": values.get("is_active", True)}
+        with pytest.raises(IntegrityError):
+            db.execute(text("INSERT INTO users (name, email, role, is_active) VALUES (:name, :email, :role, :is_active)"), fields)
+            db.commit()
+        db.rollback()
+        assert find_user_by_email(db, "admin@devicesystems.com") is not None

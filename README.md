@@ -1,369 +1,288 @@
 # device_systems
 
-## Descripción
+Actividad **GA1-220501096-01-AA1-EV09**: API REST de usuarios con FastAPI,
+SQLAlchemy 2, Pydantic v2 y SQLite. Los datos se guardan en `device_systems.db`
+y permanecen al reiniciar la API. La base empieza vacía y se crea al arrancar.
+El nombre de la aplicación es `device_systems`.
 
-API REST para gestionar usuarios mediante un CRUD completo: crear, consultar,
-reemplazar, actualizar parcialmente y eliminar. Incluye filtros, validación de
-datos, manejo de errores y documentación interactiva para la actividad del SENA.
+## Instalación y ejecución
 
-El proyecto principal es Python/FastAPI y se ejecuta desde esta raíz, aunque la
-carpeta local todavía se llame `Usuario`. El ejercicio C# anterior se conservó
-íntegro en `legacy_csharp/`, con sus archivos verificados mediante hashes. Ese
-respaldo personal está excluido de Git para mantener la evidencia centrada en Python.
+Requiere Python 3.10 o superior (verificado con Python 3.13).
+Desde la raíz, en PowerShell:
 
-No hay base de datos real: los usuarios viven en una lista en memoria. Se restauran
-al reiniciar el servidor o al recargar código con `--reload`. Ejecutar con un solo
-proceso: varios workers tendrían colecciones independientes. No hay autenticación;
-`ADMIN_USER` es una variable de configuración educativa, no una credencial.
-
-## Tecnologías
-
-- Python 3.10 o superior (verificado con Python 3.13).
-- FastAPI, Uvicorn y Pydantic v2 con `EmailStr`/email-validator.
-- python-dotenv para variables de entorno.
-- Swagger/OpenAPI y ReDoc.
-- pytest y httpx mediante `fastapi.testclient.TestClient`.
-
-## Estructura del proyecto
-
-```text
-device_systems/                 # Raíz actual del espacio de trabajo
-├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── config/
-│   │   ├── __init__.py
-│   │   └── settings.py
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   └── user_routes.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── user_schema.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── user_service.py
-│   ├── dependencies/
-│   │   ├── __init__.py
-│   │   └── user_dependencies.py
-│   └── data/
-│       ├── __init__.py
-│       └── users_db.py
-├── tests/
-│   └── test_users.py
-├── docs/
-│   ├── pruebas_manuales.md
-│   ├── validacion.md
-│   └── images/
-│       └── .gitkeep
-├── legacy_csharp/              # Respaldo local, ignorado por Git
-├── .env.example
-├── .gitignore
-├── pytest.ini
-├── requirements.txt
-└── README.md
-```
-
-`routes` recibe peticiones y llama servicios; `schemas` valida entradas y define
-salidas; `services` aplica reglas de negocio; `dependencies` resuelve usuarios;
-`data` guarda la colección; `config` carga el entorno. `main.py` configura la API,
-registra el router, agrega cabeceras y expone la ruta raíz.
-
-## Instalación
-
-Desde la raíz del proyecto:
-
-```bash
+```powershell
 python -m venv .venv
-```
-
-Windows (PowerShell):
-
-```powershell
 .\.venv\Scripts\Activate.ps1
-
-Api 
-uvicorn app.main:app --reload
-
-```
-
-Windows (CMD):
-
-```bat
-.venv\Scripts\activate.bat
-```
-
-Linux/macOS:
-
-```bash
-source .venv/bin/activate
-```
-
-Con el entorno activado:
-
-```bash
 python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
 ```
 
-Si PowerShell restringe la activación, se puede utilizar directamente
-`.\.venv\Scripts\python.exe -m pip install -r requirements.txt`, sin cambiar
-políticas del sistema.
+En Linux/macOS usa `.venv/bin/python` en lugar de `.venv\Scripts\python.exe`.
 
-## Flujo de trabajo con Git Flow
-
-El proyecto utiliza las ramas `main` y `develop`. Las nuevas funcionalidades se desarrollan en ramas `feature/*` y posteriormente se integran en `develop`.
-
-## Variables de entorno
-
-La aplicación funciona sin crear `.env`. Opcionalmente copia `.env.example` a
-`.env` y ajusta sus valores locales:
-
-```dotenv
-APP_NAME=device_systems
-APP_VERSION=2.0.0
-ADMIN_USER=admin
-```
-
-`app/config/settings.py` usa `load_dotenv()` y conserva los valores ya definidos
-en el entorno. Si faltan o están vacíos, utiliza los valores seguros anteriores.
-`APP_NAME` y `APP_VERSION` configuran los metadatos, la ruta raíz y las cabeceras.
-`ADMIN_USER` se puede consultar como `settings.ADMIN_USER`; no implementa login.
-`.env` está ignorado por Git. No agregues información privada a `.env.example`.
-
-## Ejecutar API
-
-Con el entorno activado y ubicado en la raíz:
-
-```bash
-uvicorn app.main:app --reload
-```
-
-También puedes ejecutar sin activar el entorno en Windows:
-
-```powershell
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
-```
-
-`GET http://127.0.0.1:8000/` responde:
-
-```json
-{"app": "device_systems", "version": "2.0.0", "docs": "/docs"}
-```
-
-## Abrir documentación
-
-- Swagger: http://127.0.0.1:8000/docs
+- Swagger UI: http://127.0.0.1:8000/docs
 - ReDoc: http://127.0.0.1:8000/redoc
-- OpenAPI JSON: http://127.0.0.1:8000/openapi.json
+- Especificación OpenAPI: http://127.0.0.1:8000/openapi.json
 
-## Tabla de endpoints
+La ruta SQLite se resuelve desde `app/database/connection.py` hacia
+`device_systems.db`, independientemente del directorio de ejecución.
+Ejecuta Uvicorn desde la raíz del proyecto. La base existente se conserva al reorganizar.
+La base local está excluida de Git. No se insertan usuarios automáticamente.
+`create_all()` crea tablas ausentes; no migra tablas existentes.
 
-| Método | Endpoint | Descripción | Código exitoso |
-| --- | --- | --- | --- |
-| GET | `/` | Información de la API | 200 |
-| GET | `/users` | Listar y filtrar usuarios | 200 |
-| GET | `/users/{user_id}` | Consultar usuario | 200 |
-| POST | `/users` | Crear usuario | 201 |
-| PUT | `/users/{user_id}` | Actualizar completamente | 200 |
-| PATCH | `/users/{user_id}` | Actualizar parcialmente | 200 |
-| DELETE | `/users/{user_id}` | Eliminar usuario | 204 |
-
-Filtros opcionales, combinables:
+## Estructura
 
 ```text
-GET /users?role=admin
-GET /users?role=support
-GET /users?is_active=true
-GET /users?is_active=false
-GET /users?role=admin&is_active=true
+device_systems/
+  app/
+    main.py
+    database/connection.py
+    models/user_model.py
+    schemas/user_schema.py
+    routes/user_routes.py
+    services/user_service.py
+    dependencies/database_dependency.py
+    dependencies/user_dependencies.py
+    config/settings.py
+    data/users_db.py                  # antecedente; no usado por la API
+    usuarios/{gestor,validaciones}.py # consola anterior
+  tests/test_users.py
+  docs/
+  device_systems.db                   # base local, ignorada por Git
+  requirements.txt
+  .gitignore
+  README.md
+  pytest.ini
+  .env.example
+  main.py                            # entrada de consola anterior
+  legacy_csharp/                     # respaldo local conservado
 ```
 
-Un resultado sin coincidencias devuelve `[]` con 200. Un rol de filtro no
-permitido devuelve 400 y un booleano inválido devuelve 422.
+La captura siguiente corresponde a la estructura anterior; el árbol de arriba refleja la reorganización.
 
-## Modelos y validaciones
+![Captura histórica de la estructura](docs/images/estructura.png)
 
-- `UserBase`: campos comunes. `name` elimina espacios exteriores y exige al menos
-  tres caracteres. `email` usa `EmailStr`; `is_active` es booleano.
-- `UserCreate`: requiere `name`, `email` y `role`; `is_active` vale `true` si se omite.
-- `UserUpdate`: exige los cuatro campos editables para PUT.
-- `UserPatch`: permite omitir cualquier campo, pero no acepta `null` explícito.
-  `model_dump(exclude_unset=True)` entrega únicamente los campos enviados,
-  incluyendo `false`. El objeto vacío produce 400.
-- `UserResponse`: añade `id`, generado por el servidor. Enviar `id` o campos
-  desconocidos en POST/PUT/PATCH produce 422.
+Los módulos anteriores de consola (`main.py` y `app/usuarios`) se
+conservan como antecedentes; se ejecutan con `python main.py` desde la raíz del proyecto.
+`app/data` conserva el almacenamiento histórico en memoria, que no utiliza la API.
+El punto de entrada de esta API es **app.main:app**.
+El respaldo `legacy_csharp/` se conserva localmente y está ignorado por Git.
 
-Los roles permitidos son **admin, support y user**, centralizados en
-`ALLOWED_ROLES` dentro del servicio. Se validan como regla de negocio, por eso un
-rol de texto no permitido devuelve **400**, no 422. Otros tipos inválidos siguen
-las validaciones de Pydantic.
+## Arquitectura y persistencia
 
-El correo no se puede repetir, ignorando mayúsculas/minúsculas. PUT y PATCH
-permiten conservar el correo propio y rechazan el de otro usuario. Las reglas
-se comprueban antes de modificar datos, de modo que una operación rechazada no
-deja cambios parciales.
+`connection.py` configura `engine`, `SessionLocal`, `Base` y `get_db()`.
+`database_dependency.py` expone la sesión mediante `Depends(get_db)`.
+Cada petición recibe una sesión que se cierra al terminar; las dependencias
+anidadas de una misma petición comparten esa sesión gracias a FastAPI.
+Las rutas delegan las consultas y transacciones en `user_service.py`.
+Las escrituras utilizan `commit()` y hacen `rollback()` ante errores de integridad.
 
-Hay tres usuarios iniciales: administrador (ID 1), soporte (ID 2) y usuario
-inactivo (ID 3). Un contador genera IDs sin reutilizar los eliminados durante la
-ejecución. Un lock protege las escrituras y la comprobación del correo ante
-peticiones concurrentes dentro del mismo proceso.
+El **modelo SQLAlchemy** `User` representa la tabla `users`: columnas, tipos,
+clave primaria, índices y restricciones. El **schema Pydantic** define el contrato
+HTTP: valida el JSON de entrada y controla qué campos devuelve la API.
+Un schema no crea tablas y un modelo ORM no sustituye la validación HTTP.
+`UserResponse` utiliza `from_attributes=True` para leer objetos SQLAlchemy.
 
-## Ejemplos JSON
+| Campo | Tipo SQLAlchemy | Restricciones |
+| --- | --- | --- |
+| id | Integer | Clave primaria autoincremental, no reutiliza IDs eliminados |
+| name | String | NOT NULL; CHECK de al menos 3 caracteres tras trim |
+| email | String | NOT NULL; UNIQUE con NOCASE en SQLite; índice |
+| role | String | NOT NULL; CHECK admin, support o user |
+| is_active | Boolean | NOT NULL; predeterminado True; CHECK booleano |
+| created_at | DateTime | NOT NULL; fecha automática en UTC |
+
+La fecha se almacena y devuelve sin desplazamiento de zona horaria; se interpreta
+como UTC. PUT y PATCH conservan tanto el ID como la fecha de creación.
+SQLite NOCASE compara sin mayúsculas/minúsculas los caracteres ASCII del correo.
+El formato del correo se valida en Pydantic mediante `EmailStr`.
+
+![Esquema y consulta real de SQLite](docs/images/base-datos.png)
+
+## Schemas y validaciones
+
+- `UserCreate`: name, email y role obligatorios; is_active vale true si se omite.
+- `UserUpdate`: PUT exige los cuatro campos editables.
+- `UserPatch`: campos omitibles; rechaza null explícito y el objeto vacío.
+- `UserResponse`: añade id y created_at, asignados por el servidor.
+
+El nombre elimina espacios exteriores y requiere mínimo 3 caracteres.
+Los roles admitidos son `admin`, `support` y `user`; un rol inválido genera 422.
+No se admiten campos extra ni IDs o fechas proporcionados por el cliente.
+Los correos duplicados generan 400, incluso ante inserciones concurrentes,
+gracias a la restricción UNIQUE de la base de datos.
+
+## Endpoints
+
+| Método | Ruta | Resultado |
+| --- | --- | --- |
+| GET | /users | Lista, filtros y ordenamiento; 200 |
+| GET | /users/{user_id} | Usuario por ID; 200 |
+| POST | /users | Crea usuario; 201 |
+| PUT | /users/{user_id} | Reemplaza todos los campos editables; 200 |
+| PATCH | /users/{user_id} | Modifica campos enviados; 200 |
+| DELETE | /users/{user_id} | Elimina; 204 sin cuerpo |
+
+Ejemplos de consultas combinables:
+
+```text
+/users?role=support
+/users?is_active=true
+/users?role=admin&is_active=true&sort_by=name&order=asc
+/users?sort_by=created_at&order=desc
+```
+
+`sort_by` admite `name` (predeterminado) o `created_at`; `order` admite `asc`
+(predeterminado) o `desc`. Los empates se resuelven por ID ascendente.
+El servicio también incluye `find_user_by_email()` para buscar por correo.
 
 POST `/users`:
 
 ```json
-{
-  "name": "Samir Acosta",
-  "email": "samir@example.com",
-  "role": "user",
-  "is_active": true
-}
+{"name":"Samir Acosta","email":"samir@example.com","role":"user","is_active":true}
 ```
 
-PUT `/users/{user_id}` (usa el ID que devolvió POST):
+PUT `/users/1` (usa el ID devuelto por POST):
 
 ```json
-{
-  "name": "Samir Acosta Peña",
-  "email": "samir@example.com",
-  "role": "support",
-  "is_active": true
-}
+{"name":"Samir Actualizado","email":"samir@example.com","role":"support","is_active":true}
 ```
 
-PATCH `/users/{user_id}`:
+PATCH `/users/1`:
 
 ```json
-{
-  "role": "support"
-}
+{"is_active":false}
 ```
 
-## Códigos HTTP
+## Errores controlados
 
-| Código | Significado en esta API |
+| Código | Situación |
 | --- | --- |
-| 200 | Consulta o actualización exitosa |
-| 201 | Usuario creado |
-| 204 | Usuario eliminado; sin cuerpo de respuesta |
-| 400 | Correo duplicado, rol no permitido o PATCH vacío |
-| 404 | Usuario inexistente |
-| 422 | Datos, campos requeridos o parámetros inválidos |
+| 400 | Email duplicado o PATCH vacío |
+| 404 | Usuario inexistente al consultar, actualizar o eliminar |
+| 422 | Nombre/email/rol inválido, campos faltantes, null o parámetros inválidos |
 
-## Manejo de errores
+Ejemplo: `{"detail":"Usuario no encontrado"}`.
+Las actualizaciones con correo duplicado se rechazan antes de modificar campos.
+La validación de roles ahora se realiza con Pydantic y devuelve 422.
 
-`HTTPException` interrumpe la operación y devuelve un código HTTP con `detail`.
-Por ejemplo, consultar un usuario inexistente devuelve 404:
+## Configuración y documentación
 
-```json
-{"detail": "Usuario no encontrado"}
-```
+La configuración existente admite `APP_NAME`, `APP_VERSION` y `ADMIN_USER` en
+`.env`; consulta `.env.example`. `ADMIN_USER` no implementa autenticación.
+El middleware conserva las cabeceras `X-App-Name` y `X-API-Version`.
+Swagger incluye schemas, parámetros, descripciones y códigos HTTP.
+Sus recursos visuales se cargan desde CDN y requieren Internet.
 
-Reglas de negocio, todas con 400:
+![Swagger UI real](docs/images/swagger-ui.png)
 
-```json
-{"detail": "El correo electrónico ya está registrado"}
-```
+## Pruebas y evidencias
 
-```json
-{"detail": "Rol no permitido"}
-```
-
-```json
-{"detail": "Debe enviar al menos un campo para actualizar"}
-```
-
-FastAPI genera automáticamente el 422 con una lista de errores que identifica
-los campos incorrectos; no lo capturamos manualmente.
-
-## Dependency Injection
-
-`get_user_or_404(user_id: int)` busca el usuario mediante el servicio, retorna sus
-datos o lanza 404. Las rutas GET por ID, PUT, PATCH y DELETE reciben el resultado
-mediante `Depends(get_user_or_404)`, declarado en el alias `ExistingUser`.
-Así FastAPI ejecuta la dependencia antes de la ruta y evita repetir la misma
-búsqueda y validación en cada endpoint. Las pruebas también sustituyen esta
-dependencia para comprobar que realmente se está utilizando.
-
-## Cabeceras HTTP
-
-Un middleware agrega estas cabeceras a las respuestas normales y a los errores
-controlados 400, 404 y 422, sin repetirlas en cada ruta:
-
-```text
-X-App-Name: device_systems
-X-API-Version: 2.0.0
-```
-
-Sus valores provienen de la configuración. También están presentes en DELETE 204.
-
-## Swagger/OpenAPI
-
-Swagger permite explorar esquemas, campos obligatorios y respuestas, y ejecutar
-las peticiones con **Try it out**. Los seis endpoints de usuarios aparecen bajo
-`Users`, con nombres y descripciones en español. ReDoc presenta una vista de
-consulta de la misma especificación OpenAPI. Los recursos visuales de estas
-interfaces se cargan desde sus CDN predeterminadas, por lo que el navegador
-necesita conexión a Internet.
-
-Referencias oficiales utilizadas: [dependencias de FastAPI](https://fastapi.tiangolo.com/tutorial/dependencies/),
-[middleware](https://fastapi.tiangolo.com/tutorial/middleware/) y
-[pruebas con TestClient](https://fastapi.tiangolo.com/tutorial/testing/).
-
-## Pruebas funcionales
-
-Con el entorno activado:
-
-```bash
-python -m pytest -q
-```
-
-También funciona `pytest`. En Windows sin activar el entorno:
+Desde la raíz, con el entorno virtual activo:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Las pruebas cubren CRUD, filtros individuales y combinados, errores 400/404/422,
-actualización parcial, IDs, concurrencia, cabeceras, dependencia y documentación.
-Una fixture restaura la colección y el contador antes y después de cada prueba.
-No es necesario levantar Uvicorn para utilizar TestClient.
+Resultado: **71 pruebas aprobadas**. Las pruebas usan archivos SQLite temporales,
+incluyen CRUD, filtros, orden, errores, concurrencia, constraints y persistencia
+al abrir un engine nuevo. No insertan datos de prueba en la base de trabajo.
 
-Consulta la [secuencia completa de 14 pruebas manuales](docs/pruebas_manuales.md)
-con JSON exactos y respuestas esperadas para Swagger.
+Consulta el [informe histórico de reorganización](docs/evidencias/reorganizacion_backend.md),
+el [informe de validación](docs/validacion.md), la
+[guía de pruebas manuales](docs/pruebas_manuales.md), las
+[respuestas HTTP completas](docs/resultados.json) y el
+[informe HTML de evidencias](docs/evidencias.html).
 
-Resultado de la ejecución: **58 pruebas aprobadas**. Consulta el
-[informe de validación](docs/validacion.md) para las versiones verificadas, los
-dos avisos de dependencias, la comprobación HTTP con Uvicorn y el estado de Git.
+Las siguientes imágenes son capturas de respuestas HTTP reales obtenidas con
+Uvicorn y httpx, presentadas en un informe HTML. La captura de Swagger corresponde
+a la interfaz real. La captura de base de datos muestra el esquema y la consulta
+SQL de una base temporal aislada, antes de eliminar el usuario de prueba.
 
-## Evidencias
+### Crear usuario: 201
 
-Las capturas todavía no se han creado. Guarda capturas reales de tu ejecución
-en `docs/images/` con los nombres indicados; los marcadores se mostrarán cuando
-agregues las imágenes. `.gitkeep` conserva la carpeta vacía.
+![Crear usuario: 201](docs/images/prueba-01.png)
 
-### Evidencia Swagger UI
+### Email repetido: 400
 
-![Swagger UI](docs/images/swagger-ui.png)
+![Email repetido: 400](docs/images/prueba-02.png)
 
-### Evidencia ReDoc
+### Listar usuarios: 200
 
-![ReDoc](docs/images/redoc.png)
+![Listar usuarios: 200](docs/images/prueba-03.png)
 
-### Pruebas de endpoints
+### Consultar por ID: 200
 
-Agrega aquí capturas de POST 201, PUT/PATCH 200, DELETE 204, filtros y errores.
-Puedes nombrarlas `docs/images/post-201.png`, `docs/images/patch-200.png` y
-`docs/images/error-404.png`. Incluye también una captura de `pytest` ejecutado.
+![Consultar por ID: 200](docs/images/prueba-04.png)
+
+### Usuario inexistente: 404
+
+![Usuario inexistente: 404](docs/images/prueba-05.png)
+
+### Filtrar por rol: 200
+
+![Filtrar por rol: 200](docs/images/prueba-06.png)
+
+### Filtrar activos: 200
+
+![Filtrar activos: 200](docs/images/prueba-07.png)
+
+### Ordenar por fecha: 200
+
+![Ordenar por fecha: 200](docs/images/prueba-08.png)
+
+### PUT completo: 200
+
+![PUT completo: 200](docs/images/prueba-09.png)
+
+### PATCH parcial: 200
+
+![PATCH parcial: 200](docs/images/prueba-10.png)
+
+### Rol inválido: 422
+
+![Rol inválido: 422](docs/images/prueba-11.png)
+
+### Email inválido: 422
+
+![Email inválido: 422](docs/images/prueba-12.png)
+
+### Nombre inválido: 422
+
+![Nombre inválido: 422](docs/images/prueba-13.png)
+
+### DELETE: 204
+
+![DELETE: 204](docs/images/prueba-14.png)
+
+### Verificar eliminación: 404
+
+![Verificar eliminación: 404](docs/images/prueba-15.png)
+
+### Eliminar inexistente: 404
+
+![Eliminar inexistente: 404](docs/images/prueba-16.png)
+
+### Actualizar inexistente: 404
+
+![Actualizar inexistente: 404](docs/images/prueba-17.png)
+
+Para regenerar las evidencias con Microsoft Edge instalado:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install playwright
+.\.venv\Scripts\python.exe docs/generar_evidencias.py
+```
+
+Playwright es una herramienta opcional para las capturas; no se requiere para
+usar la API ni para ejecutar pytest. El generador inicia un servidor temporal,
+comprueba los códigos HTTP, captura los resultados y cierra servidor y navegador.
 
 ## Reflexión final
 
-La evolución de esta actividad permitió pasar de la idea de una API básica con
-GET y POST a una API REST más completa. En este espacio fue necesario reconstruir
-la base porque el ejercicio disponible estaba hecho en C#. Al implementar el
-CRUD entendí mejor cuándo usar PUT y PATCH, cómo responder con códigos HTTP y
-cómo manejar errores sin detener la aplicación. Con `Depends()` pude reutilizar
-la búsqueda de usuarios, y Swagger me facilitó probar lo que construí. Separar
-las responsabilidades en rutas, modelos y servicios también hizo que el código
-fuera más fácil de leer y corregir.
+La persistencia permite que los usuarios sigan disponibles después de reiniciar
+el servidor. SQLAlchemy organiza las consultas con objetos Python y las
+restricciones de SQLite protegen la integridad incluso fuera de la API.
+Pydantic valida los datos antes de guardarlos y proporciona errores comprensibles
+al cliente. Separar conexión, modelos, schemas, servicios y rutas facilita probar
+y mantener la aplicación. Las transacciones evitan guardar cambios incompletos,
+y las pruebas de reapertura comprueban que la persistencia es real.

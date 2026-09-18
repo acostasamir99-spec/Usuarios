@@ -1,10 +1,14 @@
-"""Validación de datos con Pydantic v2; los roles se validan en el servicio."""
+"""Validación de datos con Pydantic v2; roles restringidos en los schemas."""
 
-from typing import Annotated
+from datetime import datetime
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, StringConstraints, field_validator
 
 UserName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3)]
+
+
+UserRole = Literal["admin", "support", "user"]
 
 
 class UserBase(BaseModel):
@@ -12,7 +16,7 @@ class UserBase(BaseModel):
 
     name: UserName
     email: EmailStr
-    role: str
+    role: UserRole
     is_active: bool = True
 
 
@@ -29,7 +33,7 @@ class UserPatch(BaseModel):
 
     name: UserName | None = None
     email: EmailStr | None = None
-    role: str | None = None
+    role: UserRole | None = None
     is_active: bool | None = None
 
     @field_validator("name", "email", "role", "is_active", mode="before")
@@ -42,4 +46,6 @@ class UserPatch(BaseModel):
 
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
     id: int
+    created_at: datetime

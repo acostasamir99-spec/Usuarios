@@ -1,0 +1,276 @@
+<meta charset="utf-8"><style>body{font:16px Arial;margin:32px;color:#16324f;background:#f4f7fa}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:20px;border:1px solid #cbd5e1}h1,h2{color:#124559}section{margin-bottom:32px}</style><h1>device_systems — Evidencias HTTP reales</h1><section><h2>1. Crear usuario</h2><pre>{
+  &quot;prueba&quot;: &quot;Crear usuario&quot;,
+  &quot;method&quot;: &quot;POST&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 201,
+  &quot;response&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true,
+    &quot;id&quot;: 1,
+    &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+  }
+}</pre></section><section><h2>2. Correo duplicado</h2><pre>{
+  &quot;prueba&quot;: &quot;Correo duplicado&quot;,
+  &quot;method&quot;: &quot;POST&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 400,
+  &quot;response&quot;: {
+    &quot;detail&quot;: &quot;El correo electrónico ya está registrado&quot;
+  }
+}</pre></section><section><h2>3. Listar usuarios</h2><pre>{
+  &quot;prueba&quot;: &quot;Listar usuarios&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 200,
+  &quot;response&quot;: [
+    {
+      &quot;name&quot;: &quot;Samir Acosta&quot;,
+      &quot;email&quot;: &quot;samir@example.com&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;is_active&quot;: true,
+      &quot;id&quot;: 1,
+      &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+    }
+  ]
+}</pre></section><section><h2>4. Consultar por ID</h2><pre>{
+  &quot;prueba&quot;: &quot;Consultar por ID&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 200,
+  &quot;response&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true,
+    &quot;id&quot;: 1,
+    &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+  }
+}</pre></section><section><h2>5. Usuario inexistente</h2><pre>{
+  &quot;prueba&quot;: &quot;Usuario inexistente&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users/99999&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 404,
+  &quot;response&quot;: {
+    &quot;detail&quot;: &quot;Usuario no encontrado&quot;
+  }
+}</pre></section><section><h2>6. Filtrar por rol</h2><pre>{
+  &quot;prueba&quot;: &quot;Filtrar por rol&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users?role=user&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 200,
+  &quot;response&quot;: [
+    {
+      &quot;name&quot;: &quot;Samir Acosta&quot;,
+      &quot;email&quot;: &quot;samir@example.com&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;is_active&quot;: true,
+      &quot;id&quot;: 1,
+      &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+    }
+  ]
+}</pre></section><section><h2>7. Filtrar activos</h2><pre>{
+  &quot;prueba&quot;: &quot;Filtrar activos&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users?is_active=true&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 200,
+  &quot;response&quot;: [
+    {
+      &quot;name&quot;: &quot;Samir Acosta&quot;,
+      &quot;email&quot;: &quot;samir@example.com&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;is_active&quot;: true,
+      &quot;id&quot;: 1,
+      &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+    }
+  ]
+}</pre></section><section><h2>8. Ordenar por fecha</h2><pre>{
+  &quot;prueba&quot;: &quot;Ordenar por fecha&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users?sort_by=created_at&amp;order=desc&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 200,
+  &quot;response&quot;: [
+    {
+      &quot;name&quot;: &quot;Samir Acosta&quot;,
+      &quot;email&quot;: &quot;samir@example.com&quot;,
+      &quot;role&quot;: &quot;user&quot;,
+      &quot;is_active&quot;: true,
+      &quot;id&quot;: 1,
+      &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+    }
+  ]
+}</pre></section><section><h2>9. Actualizar completo</h2><pre>{
+  &quot;prueba&quot;: &quot;Actualizar completo&quot;,
+  &quot;method&quot;: &quot;PUT&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Actualizado&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;support&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 200,
+  &quot;response&quot;: {
+    &quot;name&quot;: &quot;Samir Actualizado&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;support&quot;,
+    &quot;is_active&quot;: true,
+    &quot;id&quot;: 1,
+    &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+  }
+}</pre></section><section><h2>10. Actualizar parcial</h2><pre>{
+  &quot;prueba&quot;: &quot;Actualizar parcial&quot;,
+  &quot;method&quot;: &quot;PATCH&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: {
+    &quot;is_active&quot;: false
+  },
+  &quot;status&quot;: 200,
+  &quot;response&quot;: {
+    &quot;name&quot;: &quot;Samir Actualizado&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;support&quot;,
+    &quot;is_active&quot;: false,
+    &quot;id&quot;: 1,
+    &quot;created_at&quot;: &quot;2026-09-17T18:35:28.238099&quot;
+  }
+}</pre></section><section><h2>11. Rol inválido</h2><pre>{
+  &quot;prueba&quot;: &quot;Rol inválido&quot;,
+  &quot;method&quot;: &quot;POST&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;invalid&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 422,
+  &quot;response&quot;: {
+    &quot;detail&quot;: [
+      {
+        &quot;type&quot;: &quot;literal_error&quot;,
+        &quot;loc&quot;: [
+          &quot;body&quot;,
+          &quot;role&quot;
+        ],
+        &quot;msg&quot;: &quot;Input should be &#x27;admin&#x27;, &#x27;support&#x27; or &#x27;user&#x27;&quot;,
+        &quot;input&quot;: &quot;invalid&quot;,
+        &quot;ctx&quot;: {
+          &quot;expected&quot;: &quot;&#x27;admin&#x27;, &#x27;support&#x27; or &#x27;user&#x27;&quot;
+        }
+      }
+    ]
+  }
+}</pre></section><section><h2>12. Email inválido</h2><pre>{
+  &quot;prueba&quot;: &quot;Email inválido&quot;,
+  &quot;method&quot;: &quot;POST&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;invalido&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 422,
+  &quot;response&quot;: {
+    &quot;detail&quot;: [
+      {
+        &quot;type&quot;: &quot;value_error&quot;,
+        &quot;loc&quot;: [
+          &quot;body&quot;,
+          &quot;email&quot;
+        ],
+        &quot;msg&quot;: &quot;value is not a valid email address: An email address must have an @-sign.&quot;,
+        &quot;input&quot;: &quot;invalido&quot;,
+        &quot;ctx&quot;: {
+          &quot;reason&quot;: &quot;An email address must have an @-sign.&quot;
+        }
+      }
+    ]
+  }
+}</pre></section><section><h2>13. Nombre inválido</h2><pre>{
+  &quot;prueba&quot;: &quot;Nombre inválido&quot;,
+  &quot;method&quot;: &quot;POST&quot;,
+  &quot;path&quot;: &quot;/users&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;ab&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 422,
+  &quot;response&quot;: {
+    &quot;detail&quot;: [
+      {
+        &quot;type&quot;: &quot;string_too_short&quot;,
+        &quot;loc&quot;: [
+          &quot;body&quot;,
+          &quot;name&quot;
+        ],
+        &quot;msg&quot;: &quot;String should have at least 3 characters&quot;,
+        &quot;input&quot;: &quot;ab&quot;,
+        &quot;ctx&quot;: {
+          &quot;min_length&quot;: 3
+        }
+      }
+    ]
+  }
+}</pre></section><section><h2>14. Eliminar</h2><pre>{
+  &quot;prueba&quot;: &quot;Eliminar&quot;,
+  &quot;method&quot;: &quot;DELETE&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 204,
+  &quot;response&quot;: null
+}</pre></section><section><h2>15. Verificar eliminación</h2><pre>{
+  &quot;prueba&quot;: &quot;Verificar eliminación&quot;,
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 404,
+  &quot;response&quot;: {
+    &quot;detail&quot;: &quot;Usuario no encontrado&quot;
+  }
+}</pre></section><section><h2>16. Eliminar inexistente</h2><pre>{
+  &quot;prueba&quot;: &quot;Eliminar inexistente&quot;,
+  &quot;method&quot;: &quot;DELETE&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: null,
+  &quot;status&quot;: 404,
+  &quot;response&quot;: {
+    &quot;detail&quot;: &quot;Usuario no encontrado&quot;
+  }
+}</pre></section><section><h2>17. Actualizar inexistente</h2><pre>{
+  &quot;prueba&quot;: &quot;Actualizar inexistente&quot;,
+  &quot;method&quot;: &quot;PUT&quot;,
+  &quot;path&quot;: &quot;/users/1&quot;,
+  &quot;request&quot;: {
+    &quot;name&quot;: &quot;Samir Acosta&quot;,
+    &quot;email&quot;: &quot;samir@example.com&quot;,
+    &quot;role&quot;: &quot;user&quot;,
+    &quot;is_active&quot;: true
+  },
+  &quot;status&quot;: 404,
+  &quot;response&quot;: {
+    &quot;detail&quot;: &quot;Usuario no encontrado&quot;
+  }
+}</pre></section>

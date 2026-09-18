@@ -1,0 +1,294 @@
+[
+  {
+    "prueba": "Crear usuario",
+    "method": "POST",
+    "path": "/users",
+    "request": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true
+    },
+    "status": 201,
+    "response": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true,
+      "id": 1,
+      "created_at": "2026-09-17T18:35:28.238099"
+    }
+  },
+  {
+    "prueba": "Correo duplicado",
+    "method": "POST",
+    "path": "/users",
+    "request": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true
+    },
+    "status": 400,
+    "response": {
+      "detail": "El correo electrónico ya está registrado"
+    }
+  },
+  {
+    "prueba": "Listar usuarios",
+    "method": "GET",
+    "path": "/users",
+    "request": null,
+    "status": 200,
+    "response": [
+      {
+        "name": "Samir Acosta",
+        "email": "samir@example.com",
+        "role": "user",
+        "is_active": true,
+        "id": 1,
+        "created_at": "2026-09-17T18:35:28.238099"
+      }
+    ]
+  },
+  {
+    "prueba": "Consultar por ID",
+    "method": "GET",
+    "path": "/users/1",
+    "request": null,
+    "status": 200,
+    "response": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true,
+      "id": 1,
+      "created_at": "2026-09-17T18:35:28.238099"
+    }
+  },
+  {
+    "prueba": "Usuario inexistente",
+    "method": "GET",
+    "path": "/users/99999",
+    "request": null,
+    "status": 404,
+    "response": {
+      "detail": "Usuario no encontrado"
+    }
+  },
+  {
+    "prueba": "Filtrar por rol",
+    "method": "GET",
+    "path": "/users?role=user",
+    "request": null,
+    "status": 200,
+    "response": [
+      {
+        "name": "Samir Acosta",
+        "email": "samir@example.com",
+        "role": "user",
+        "is_active": true,
+        "id": 1,
+        "created_at": "2026-09-17T18:35:28.238099"
+      }
+    ]
+  },
+  {
+    "prueba": "Filtrar activos",
+    "method": "GET",
+    "path": "/users?is_active=true",
+    "request": null,
+    "status": 200,
+    "response": [
+      {
+        "name": "Samir Acosta",
+        "email": "samir@example.com",
+        "role": "user",
+        "is_active": true,
+        "id": 1,
+        "created_at": "2026-09-17T18:35:28.238099"
+      }
+    ]
+  },
+  {
+    "prueba": "Ordenar por fecha",
+    "method": "GET",
+    "path": "/users?sort_by=created_at&order=desc",
+    "request": null,
+    "status": 200,
+    "response": [
+      {
+        "name": "Samir Acosta",
+        "email": "samir@example.com",
+        "role": "user",
+        "is_active": true,
+        "id": 1,
+        "created_at": "2026-09-17T18:35:28.238099"
+      }
+    ]
+  },
+  {
+    "prueba": "Actualizar completo",
+    "method": "PUT",
+    "path": "/users/1",
+    "request": {
+      "name": "Samir Actualizado",
+      "email": "samir@example.com",
+      "role": "support",
+      "is_active": true
+    },
+    "status": 200,
+    "response": {
+      "name": "Samir Actualizado",
+      "email": "samir@example.com",
+      "role": "support",
+      "is_active": true,
+      "id": 1,
+      "created_at": "2026-09-17T18:35:28.238099"
+    }
+  },
+  {
+    "prueba": "Actualizar parcial",
+    "method": "PATCH",
+    "path": "/users/1",
+    "request": {
+      "is_active": false
+    },
+    "status": 200,
+    "response": {
+      "name": "Samir Actualizado",
+      "email": "samir@example.com",
+      "role": "support",
+      "is_active": false,
+      "id": 1,
+      "created_at": "2026-09-17T18:35:28.238099"
+    }
+  },
+  {
+    "prueba": "Rol inválido",
+    "method": "POST",
+    "path": "/users",
+    "request": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "invalid",
+      "is_active": true
+    },
+    "status": 422,
+    "response": {
+      "detail": [
+        {
+          "type": "literal_error",
+          "loc": [
+            "body",
+            "role"
+          ],
+          "msg": "Input should be 'admin', 'support' or 'user'",
+          "input": "invalid",
+          "ctx": {
+            "expected": "'admin', 'support' or 'user'"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "prueba": "Email inválido",
+    "method": "POST",
+    "path": "/users",
+    "request": {
+      "name": "Samir Acosta",
+      "email": "invalido",
+      "role": "user",
+      "is_active": true
+    },
+    "status": 422,
+    "response": {
+      "detail": [
+        {
+          "type": "value_error",
+          "loc": [
+            "body",
+            "email"
+          ],
+          "msg": "value is not a valid email address: An email address must have an @-sign.",
+          "input": "invalido",
+          "ctx": {
+            "reason": "An email address must have an @-sign."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "prueba": "Nombre inválido",
+    "method": "POST",
+    "path": "/users",
+    "request": {
+      "name": "ab",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true
+    },
+    "status": 422,
+    "response": {
+      "detail": [
+        {
+          "type": "string_too_short",
+          "loc": [
+            "body",
+            "name"
+          ],
+          "msg": "String should have at least 3 characters",
+          "input": "ab",
+          "ctx": {
+            "min_length": 3
+          }
+        }
+      ]
+    }
+  },
+  {
+    "prueba": "Eliminar",
+    "method": "DELETE",
+    "path": "/users/1",
+    "request": null,
+    "status": 204,
+    "response": null
+  },
+  {
+    "prueba": "Verificar eliminación",
+    "method": "GET",
+    "path": "/users/1",
+    "request": null,
+    "status": 404,
+    "response": {
+      "detail": "Usuario no encontrado"
+    }
+  },
+  {
+    "prueba": "Eliminar inexistente",
+    "method": "DELETE",
+    "path": "/users/1",
+    "request": null,
+    "status": 404,
+    "response": {
+      "detail": "Usuario no encontrado"
+    }
+  },
+  {
+    "prueba": "Actualizar inexistente",
+    "method": "PUT",
+    "path": "/users/1",
+    "request": {
+      "name": "Samir Acosta",
+      "email": "samir@example.com",
+      "role": "user",
+      "is_active": true
+    },
+    "status": 404,
+    "response": {
+      "detail": "Usuario no encontrado"
+    }
+  }
+]
